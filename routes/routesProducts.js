@@ -4,7 +4,7 @@ const routerProduct = express.Router();
 
 routerProduct.get('/', (req, res) => {
     console.log("entro a la ruta home actualizada")
-    res.send('Hello World!')
+    res.send('ROUTES PRODUCTS')
 })
 
 routerProduct.post('/', (req, res) => {
