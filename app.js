@@ -1,17 +1,27 @@
-import express  from "express"
-import dotenv from "dotenv"
-import routerProducts from "./routes/routesProducts.js";
+import express from 'express'
+import dotenv from 'dotenv'
+import cors from 'cors'
+import routerProduct from './routes/routesProducts.js'
+import { erorrHandler } from './middleware/errors.js'
+import connectionMongoDB from './config/db.js'
 
 dotenv.config()
+
 const app = express()
-const port = Number(process.env.PORT) || 5000
+const PORT = process.env.PORT || 5000;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+/////////////conexion a mongo//////////
+connectionMongoDB();
+//////////////////////////////////////
 
-app.use("/api/routesProducts", routerProducts);
+app.use(express.json());
+app.use(cors());
+app.use(express.urlencoded({extended: true}));
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+app.use('/api/products', routerProduct);
+
+app.use(erorrHandler);
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}`)
 })

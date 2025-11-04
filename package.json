@@ -1,7 +1,7 @@
 {
-  "name": "audiovisual",
+  "name": "audiovidual",
   "version": "1.0.0",
-  "description": "auidovisual-back software",
+  "description": "audiovisual-back software",
   "type": "module",
   "main": "app.js",
   "scripts": {
@@ -12,19 +12,12 @@
   "keywords": [
     "back"
   ],
-  "author": "Monserrat Cadena Palomo",
+  "author": "Alejandro Briseño",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/0262140-monsecade/audiovisual_BACK.git"
-  },
-  "bugs": {
-    "url": "https://github.com/0262140-monsecade/audiovisual_BACK/issues"
-  },
-  "homepage": "https://github.com/0262140-monsecade/audiovisual_BACK#readme",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mongoose": "^8.19.2"
   }
 }
