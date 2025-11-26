@@ -1,51 +1,38 @@
-// routes/auth.js
 import express from "express";
 import jwt from "jsonwebtoken";
-import { OAuth2Client } from "google-auth-library";
+import axios from "axios"; // 👈 Agregamos esto
 import User from "../models/user.js";
 
 const router = express.Router();
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-// Función para crear nuestro JWT
+// Función auxiliar para crear tu JWT (esto NO cambia, solo la encapsulé para orden)
 function createToken(user) {
   return jwt.sign(
-    {
-      id: user._id,
-      email: user.email,
-      name: user.name,
-    },
+    { id: user._id, email: user.email, name: user.name, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
   );
 }
 
 // POST /api/auth/google
-router.post("/google", async (req, res, next) => {
+router.post("/google", async (req, res) => {
   try {
-    const { id_token } = req.body;
+    // 1. Recibimos el token simple desde el Front
+    const { token } = req.body;
 
-    if (!id_token) {
-      return res.status(400).json({ message: "Falta id_token" });
+    if (!token) {
+      return res.status(400).json({ message: "Falta el token de acceso" });
     }
 
-    // Verificar token con Google
-    const ticket = await client.verifyIdToken({
-      idToken: id_token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+    // 2. CONSULTA A GOOGLE: Usamos el token para pedir los datos del usuario
+    const googleRes = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${token}` }
     });
 
-    const payload = ticket.getPayload();
-    const { sub: googleId, email, name, picture, hd } = payload;
+    // 3. Google nos responde con los datos
+    const { sub: googleId, email, name, picture } = googleRes.data;
 
-    // Si quieres FORZAR correo institucional, puedes validar dominio
-    // Por ejemplo si tu correo es @miuni.edu.mx:
-    // if (!email.endsWith("@miuni.edu.mx")) {
-    //   return res.status(401).json({ message: "Solo correos institucionales" });
-    // }
-
-    // Buscar o crear usuario
+    // 4. Lógica de base de datos (Igual que antes: buscar o crear)
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -54,29 +41,32 @@ router.post("/google", async (req, res, next) => {
         email,
         picture,
         googleId,
+        role: "student" // Rol por defecto
       });
-    } else if (!user.googleId) {
-      user.googleId = googleId;
+    } else {
+      if (!user.googleId) user.googleId = googleId;
       if (picture) user.picture = picture;
       await user.save();
     }
 
-    // Crear nuestro token
-    const token = createToken(user);
+    // 5. Respondemos al front con tu token de sesión
+    const myToken = createToken(user);
 
     res.json({
-      message: "Login con Google exitoso",
-      token,
+      message: "Login exitoso",
+      token: myToken,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         picture: user.picture,
+        role: user.role
       },
     });
+
   } catch (error) {
-    console.error("Error en /api/auth/google", error);
-    return res.status(401).json({ message: "Token de Google inválido" });
+    console.error("Error verificando con Google:", error.message);
+    return res.status(401).json({ message: "Token inválido o expirado" });
   }
 });
 
