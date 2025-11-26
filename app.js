@@ -1,7 +1,9 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
-import routerProduct from './routes/routesProducts.js'
+import routerEquipment from "./routes/equipo.js"
+import authRouter from "./routes/auth.js"     
+import routerReservations from "./routes/reservations.js"
 import { erorrHandler } from './middleware/errors.js'
 import connectionMongoDB from './config/db.js'
 
@@ -18,10 +20,13 @@ app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({extended: true}));
 
-app.use('/api/products', routerProduct);
+app.use('/api/equipment', routerEquipment);
+app.use('/api/reservation', routerReservations);
+app.use('/api/auth', authRouter);            
+
 
 app.use(erorrHandler);
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`)
+  console.log(`Example app listening on http://127.0.0.1:${PORT}/`)
 })
